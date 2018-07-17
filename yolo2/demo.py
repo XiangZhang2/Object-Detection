@@ -47,9 +47,6 @@ cv2.waitKey(0)
 
 
 
-#### update with carmra ####
-
-
 
 
 
