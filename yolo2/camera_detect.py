@@ -9,6 +9,10 @@ from config import anchors, class_names
 
 
 def camera_detect():
+
+    tf.app.flags.DEFINE_string('video', False, 'Whether to output video file')
+    FLAGS = tf.app.flags.FLAGS
+
     input_size = (416, 416)
 
     cv2.namedWindow("camera")
@@ -17,6 +21,13 @@ def camera_detect():
 
     images = tf.placeholder(tf.float32, [1, input_size[0], input_size[1], 3])
     detection_feat = darknet(images)
+
+    if FLAGS.video:
+        fps = 1
+        size = (int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        videoWriter = cv2.VideoWriter('./test/result.avi',
+        cv2.VideoWriter_fourcc('M','J', 'P', 'G'), fps, size)
 
     num = 1
 
@@ -38,13 +49,19 @@ def camera_detect():
         bboxes, scores, class_inds = postprocess(bboxes, obj_probs, class_probs,
                                                  image_shape=image_shape)
         img_detection = draw_detection(image, bboxes, scores, class_inds, class_names)
-        cv2.imwrite("./test/"+str(num)+"test.jpg", img_detection)
+        
+        if FLAGS.video:
+            videoWriter.write(img_detection)
+        else:
+            cv2.imwrite("./test/"+str(num)+"test.jpg", img_detection)
+
         success, image = capture.read()
 
         num += 1
 
     cv2.destroyWindow("camera")
     capture.release()
+
 
 if __name__ == '__main__':
     camera_detect()
